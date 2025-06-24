@@ -32,11 +32,11 @@ func (b *Bot) sendScrapped(c tele.Context, files []sources.Item) error {
 			}
 			al = al[:0]
 		}
-		if len(al) > 0 {
-			_, err := b.SendAlbum(c.Sender(), al)
-			if err != nil {
-				return err
-			}
+	}
+	if len(al) > 0 {
+		_, err := b.SendAlbum(c.Sender(), al)
+		if err != nil {
+			return err
 		}
 	}
 	return nil

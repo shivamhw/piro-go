@@ -348,6 +348,8 @@ github.com/shivamhw/content-pirate v0.0.0-20250622110041-e04c649d8769 h1:d43WHrc
 github.com/shivamhw/content-pirate v0.0.0-20250622110041-e04c649d8769/go.mod h1:kitnP32b21shfccLpipj2bap5woxvEWwEBAJEr6MVzY=
 github.com/shivamhw/content-pirate v0.0.0-20250622122143-dccfde2b872e h1:y9CVegVMB3oqpJRTBnjpeUHFuXrKHzDBL6Ukhvek5/k=
 github.com/shivamhw/content-pirate v0.0.0-20250622122143-dccfde2b872e/go.mod h1:kitnP32b21shfccLpipj2bap5woxvEWwEBAJEr6MVzY=
+github.com/shivamhw/content-pirate v0.0.0-20250624180647-1d34b7761d0e h1:gAQNYOb8AXHw0SezOpUyN2BbihN07jOy7AHBrvi1H98=
+github.com/shivamhw/content-pirate v0.0.0-20250624180647-1d34b7761d0e/go.mod h1:kitnP32b21shfccLpipj2bap5woxvEWwEBAJEr6MVzY=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
 github.com/sirupsen/logrus v1.6.0/go.mod h1:7uNnSEd1DgxDLC74fIahvMZmmYsHGZGEOFrfsX/uA88=

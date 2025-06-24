@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -19,6 +20,7 @@ var dst = &store.DstPath{
 }
 
 func (b *Bot) scrpCallbackHandler(c tele.Context) error {
+	var files []sources.Item
 	red := strings.Split(c.Data(), "|")[0]
 	lim := strings.Split(c.Data(), "|")[1]
 	log.Infof("scrapping sub reddit with limits,", "sub", red, "limit", lim)
@@ -29,9 +31,21 @@ func (b *Bot) scrpCallbackHandler(c tele.Context) error {
 		SkipVideos: true,
 	}
 	msg, _ := b.Send(c.Sender(), fmt.Sprintf("started scrapping %s for %s posts", red, lim))
-	files, err := b.scrape(red, opts)
-	if err != nil {
-		return err
+	key := fmt.Sprintf("%s|%d", red, limit)
+	if val, err := b.kv.Get("req", key); err != nil {
+		log.Infof("cache miss for", "key", key)
+		files, err = b.scrape(red, opts)
+		if err != nil {
+			return err
+		}
+		d, _ := json.Marshal(files)
+		b.kv.Set("req", key, d)
+	} else {
+		log.Infof("cache hit ", "key", key)
+		err := json.Unmarshal(val, &files)
+		if err != nil {
+			return err
+		}
 	}
 	b.b.Edit(msg, fmt.Sprintf("scrapped %d posts, sending it to you", len(files)))
 	if err := b.sendScrapped(c, files); err != nil {

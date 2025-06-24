@@ -3,7 +3,7 @@ module github.com/shivamhw/piro-go
 go 1.24.4
 
 require (
-	github.com/shivamhw/content-pirate v0.0.0-20250622122143-dccfde2b872e
+	github.com/shivamhw/content-pirate v0.0.0-20250624180647-1d34b7761d0e
 	gopkg.in/telebot.v4 v4.0.0-beta.5
 )
 

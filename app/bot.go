@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/shivamhw/content-pirate/pkg/kv"
 	"github.com/shivamhw/content-pirate/pkg/reddit"
 	"github.com/shivamhw/piro-go/pkg/log"
 	"github.com/shivamhw/piro-go/pkg/scrapper"
@@ -20,6 +21,7 @@ type Bot struct {
 	r   *reddit.RedditClient
 	s   *scrapper.Scrapper
 	ctx context.Context
+	kv  kv.KV
 }
 
 func NewBot() (*Bot, error) {
@@ -48,6 +50,7 @@ func NewBot() (*Bot, error) {
 		b:   b,
 		r:   r,
 		s:   s,
+		kv:  kv.GetInMemoryKv(),
 		ctx: context.Background(),
 	}, nil
 }

@@ -15,7 +15,6 @@ func Run() error {
 	b.Handle(&searchBtn, b.searchBtnHandler)
 	b.Handle(&scrapeBtn, b.scrpCallbackHandler)
 	b.Handle(&subBtn, b.subBtnCallbackHandle)
-	b.Handle("/scrape", b.scrapeCmdHandler) 
 	b.Handle("/start", func(c tele.Context) error {
 		return c.Send(welcomeMsg)
 	})

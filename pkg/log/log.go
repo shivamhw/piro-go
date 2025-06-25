@@ -28,3 +28,8 @@ func Errorf(s string, args... any){
 func Debugf(s string, args... any){
 	defaultLogger.Debug(s, args...)
 }
+
+
+func WarnF(s string, args... any){
+	defaultLogger.Warn(s, args...)
+}

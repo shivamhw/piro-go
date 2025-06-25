@@ -9,7 +9,7 @@ github.com/google/uuid
 # github.com/jinzhu/copier v0.4.0
 ## explicit; go 1.13
 github.com/jinzhu/copier
-# github.com/shivamhw/content-pirate v0.0.0-20250624180647-1d34b7761d0e
+# github.com/shivamhw/content-pirate v0.0.0-20250625124423-669982e204b0
 ## explicit; go 1.23.3
 github.com/shivamhw/content-pirate/commons
 github.com/shivamhw/content-pirate/pkg/kv

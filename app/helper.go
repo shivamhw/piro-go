@@ -2,15 +2,40 @@ package app
 
 import (
 	"fmt"
+	"time"
+
+	"github.com/shivamhw/content-pirate/pkg/scrapper"
 	"github.com/shivamhw/content-pirate/sources"
 	"github.com/shivamhw/piro-go/pkg/log"
 	tele "gopkg.in/telebot.v4"
 )
 
-func (b *Bot) scrape(red string, opts *sources.ScrapeOpts) ([]sources.Item, error) {
-	files, err := b.s.Scrape(red, dst, opts)
+func (b *Bot) scrape(update *tele.Message, red string, opts *sources.ScrapeOpts) ([]sources.Item, error) {
+	deadline := time.Now().Add(10 * time.Minute) 
+	var files []sources.Item
+	id, err := b.s.Scrape(red, dst, opts)
 	if err != nil {
 		return nil, err
+	}
+	for  {
+		st, err := b.s.CheckJob(id)
+		if err != nil {
+			return files, err
+		}
+		b.b.Edit(update, fmt.Sprintf("Downloading %d/%d", st.ItemDone, st.TotalItem))
+		if st.ItemDone >= st.TotalItem && st.Status != scrapper.TaskCreated{
+			res, err := b.s.GetJob(id)
+			if err != nil {
+				return files, err
+			}
+			files = res.I
+			break
+		}
+		if time.Now().After(deadline) {
+			log.Errorf("timeout while executing the task, not waiting anymore %s", id)
+			return files, nil
+		}
+		time.Sleep(2 * time.Second)
 	}
 	return files, nil
 }

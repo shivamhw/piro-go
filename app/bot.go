@@ -8,12 +8,14 @@ import (
 	"github.com/shivamhw/content-pirate/pkg/kv"
 	"github.com/shivamhw/content-pirate/pkg/reddit"
 	"github.com/shivamhw/piro-go/pkg/log"
+	"github.com/shivamhw/piro-go/pkg/notifier"
 	"github.com/shivamhw/piro-go/pkg/scrapper"
 	"gopkg.in/telebot.v4"
 )
 
 const (
 	TOKEN_ENV_VAR = "TELE_TOKEN"
+	NTFY_TOPIC = "NTFY_TOPIC"
 )
 
 type Bot struct {
@@ -22,16 +24,26 @@ type Bot struct {
 	s   *scrapper.Scrapper
 	ctx context.Context
 	kv  kv.KV
+	n   notifier.Notifier
 }
 
 func NewBot() (*Bot, error) {
+	var n notifier.Notifier
 	r, err := reddit.NewRedditClient(context.Background(), reddit.RedditClientOpts{})
 	if err != nil {
 		return nil, err
 	}
 	token := os.Getenv(TOKEN_ENV_VAR)
+	topic := os.Getenv(NTFY_TOPIC)
 	if token == "" {
 		log.Errorf("env var not set", "var", TOKEN_ENV_VAR)
+	}
+	if topic == "" {
+		log.WarnF("using default notifier")
+		n = &notifier.DefaultNtfy{}
+	} else {
+		log.Infof("Using topic to ntfy", "topic", topic)
+		n = notifier.NewNtfy(topic)
 	}
 	s, err := scrapper.StartScrapper()
 	if err != nil {
@@ -50,6 +62,7 @@ func NewBot() (*Bot, error) {
 		b:   b,
 		r:   r,
 		s:   s,
+		n:   n,
 		kv:  kv.GetInMemoryKv(),
 		ctx: context.Background(),
 	}, nil
@@ -74,4 +87,8 @@ func (b *Bot) Start() {
 
 func (b *Bot) SendAlbum(to telebot.Recipient, a telebot.Album, opts ...interface{}) ([]telebot.Message, error) {
 	return b.b.SendAlbum(to, a, opts...)
+}
+
+func (b *Bot) Notify(s string) {
+	b.n.Notify(s)
 }

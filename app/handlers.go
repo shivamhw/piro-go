@@ -34,7 +34,7 @@ func (b *Bot) scrpCallbackHandler(c tele.Context) error {
 	key := fmt.Sprintf("%s|%d", red, limit)
 	if val, err := b.kv.Get("req", key); err != nil {
 		log.Infof("cache miss for", "key", key)
-		files, err = b.scrape(red, opts)
+		files, err = b.scrape(msg, red, opts)
 		if err != nil {
 			return err
 		}
@@ -66,25 +66,6 @@ func (b *Bot) subBtnCallbackHandle(c tele.Context) error {
 	return c.Respond()
 }
 
-func (b *Bot) scrapeCmdHandler(c tele.Context) error {
-	red := strings.Split(c.Text(), " ")[1]
-	opts := &sources.ScrapeOpts{
-		Limit:      10,
-		Duration:   "month",
-		SkipVideos: true,
-	}
-	files, err := b.scrape(red, opts)
-	if err != nil {
-		return err
-	}
-	c.Send(fmt.Sprintf("scrapped %d posts, sending it to you", len(files)))
-	if err := b.sendScrapped(c, files); err != nil {
-		c.Send("somethings bad happedn")
-		return err
-	}
-	return nil
-}
-
 func (b *Bot) searchCmdHandler(ctx tele.Context) error {
 	q := strings.Join(strings.Split(ctx.Text(), " ")[1:], " ")
 	return b.search(ctx, q)
@@ -102,6 +83,7 @@ func (b *Bot) defaultMsgHandler(ctx tele.Context) error {
 func (b *Bot) searchBtnHandler(ctx tele.Context) error {
 	q := ctx.Data()
 	log.Infof("searching for user", "q", q, "user", ctx.Sender().FirstName)
+	b.Notify(fmt.Sprintf("searching for user %s q %s", ctx.Sender().FirstName, q))
 	ctx.Respond()
 	return b.search(ctx, q)
 }

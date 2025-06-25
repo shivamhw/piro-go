@@ -26,22 +26,20 @@ func StartScrapper() (*Scrapper, error) {
 	}, nil
 }
 
-func (s *Scrapper) Scrape(src string, dst *store.DstPath, opts *sources.ScrapeOpts) ([]sources.Item, error) {
+func (s *Scrapper) CheckJob(id string) (scr.TaskStatus, error) {
+	return s.s.CheckJob(id)
+}
+
+func (s *Scrapper) GetJob(id string) (scr.Task, error) {
+	return s.s.GetJob(id)
+}
+
+func (s *Scrapper) Scrape(src string, dst *store.DstPath, opts *sources.ScrapeOpts) (string, error) {
 	j := scr.Job{
 		SrcAc: src,
 		Dst: *dst,
 		Opts: *opts,
 		SourceStore: scr.REDDIT,
 	}
-	id, err := s.s.SubmitJob(j)
-	if err != nil {
-		return nil, err
-	}
-	s.s.WaitOnId(id)
-	res, err := s.s.GetJob(id)
-	if err !=nil {
-		return nil, err
-	}
-
-	return res.I, nil
+	return s.s.SubmitJob(j)
 }

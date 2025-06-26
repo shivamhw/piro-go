@@ -24,21 +24,21 @@ func (b *Bot) scrpCallbackHandler(c tele.Context) error {
 	var files []sources.Item
 	red := strings.Split(c.Data(), "|")[0]
 	lim := strings.Split(c.Data(), "|")[2]
-	filter :=strings.Split(c.Data(), "|")[1]
+	filter := strings.Split(c.Data(), "|")[1]
 
 	log.Infof("scrapping sub reddit with limits,", "sub", red, "limit", lim)
 	limit, _ := strconv.Atoi(lim)
 	opts := &sources.ScrapeOpts{
-		Limit:      limit,
-		Duration:   "month",
-		SkipVideos: true,
+		Limit:        limit,
+		Duration:     "month",
+		SkipVideos:   true,
 		RedditFilter: reddit.PostFilter(filter),
 	}
-	msg, _ := b.Send(c.Sender(), fmt.Sprintf("started scrapping %s for %s posts", red, lim))
+	c.Edit(fmt.Sprintf("started scrapping %s for %s posts", red, lim))
 	key := fmt.Sprintf("%s|%d", red, limit)
 	if val, err := b.kv.Get("req", key); err != nil {
 		log.Infof("cache miss for", "key", key)
-		files, err = b.scrape(msg, red, opts)
+		files, err = b.scrape(c, red, opts, 10)
 		if err != nil {
 			return err
 		}
@@ -52,10 +52,10 @@ func (b *Bot) scrpCallbackHandler(c tele.Context) error {
 		}
 	}
 	if len(files) <= 0 {
-		b.b.Edit(msg, "No posts to download 😥")
+		c.Edit("No posts to download 😥")
 		return c.Respond()
 	}
-	b.b.Edit(msg, fmt.Sprintf("scrapped %d posts, sending it to you", len(files)))
+	c.Edit(fmt.Sprintf("scrapped %d posts, sending it to you", len(files)))
 	if err := b.sendScrapped(c, files); err != nil {
 		return err
 	}
@@ -65,10 +65,17 @@ func (b *Bot) scrpCallbackHandler(c tele.Context) error {
 func (b *Bot) subBtnCallbackHandle(c tele.Context) error {
 	mu := &tele.ReplyMarkup{}
 	var rows []tele.Row
-	rows = append(rows, prepareSearchBtn(c.Data(), "TOP"))
-	rows = append(rows, prepareSearchBtn(c.Data(), "HOT"))
+	r := strings.Split(c.Data(), "|")[0]
+	t := strings.Split(c.Data(), "|")[1]
+	switch t {
+	case "NAME_BTN":
+		rows = append(rows, menu.Row(mu.Data("TOP", SUB_BTN, r, "FILTER_BTN", "TOP"), mu.Data("HOT", SUB_BTN, r, "FILTER_BTN", "HOT")))
+	case "FILTER_BTN":
+		f := strings.Split(c.Data(), "|")[2]
+		rows = append(rows, prepareSearchBtn(r, f, c.Message().ID))
+	}
 	mu.Inline(rows...)
-	c.Send(fmt.Sprintf("Here are your options for %s", c.Data()), mu)
+	b.b.Edit(c.Message(), fmt.Sprintf("Here are your options for %s", r), mu)
 	return c.Respond()
 }
 

@@ -10,8 +10,8 @@ import (
 	tele "gopkg.in/telebot.v4"
 )
 
-func (b *Bot) scrape(update *tele.Message, red string, opts *sources.ScrapeOpts) ([]sources.Item, error) {
-	deadline := time.Now().Add(10 * time.Minute) 
+func (b *Bot) scrape(update tele.Context, red string, opts *sources.ScrapeOpts, timeout int) ([]sources.Item, error) {
+	deadline := time.Now().Add(time.Duration(timeout) * time.Minute) 
 	var files []sources.Item
 	id, err := b.s.Scrape(red, dst, opts)
 	if err != nil {
@@ -22,7 +22,7 @@ func (b *Bot) scrape(update *tele.Message, red string, opts *sources.ScrapeOpts)
 		if err != nil {
 			return files, err
 		}
-		b.b.Edit(update, fmt.Sprintf("Downloading %d/%d", st.ItemDone, st.TotalItem))
+		update.Edit(fmt.Sprintf("Downloading %d/%d", st.ItemDone, st.TotalItem))
 		if st.ItemDone >= st.TotalItem && st.Status != scrapper.TaskCreated{
 			res, err := b.s.GetJob(id)
 			if err != nil {
@@ -69,7 +69,7 @@ func (b *Bot) sendScrapped(c tele.Context, files []sources.Item) error {
 
 func (b *Bot) search(ctx tele.Context, q string) error {
 	log.Debugf("searching for %s", q)
-	ctx.Send(fmt.Sprintf("searching for %s", q))
+	ctx.Edit(fmt.Sprintf("searching for %s", q))
 	res, err := b.r.SearchSubreddits(q, 10)
 	if err != nil {
 		return err
@@ -79,21 +79,21 @@ func (b *Bot) search(ctx tele.Context, q string) error {
 	var rows []tele.Row
 	for _, r := range res {
 		text := fmt.Sprintf("%s 🧑‍🤝‍🧑 %d", r.Name, r.Subscribers)
-		btn := inline.Data(text, SUB_BTN, r.Name)
+		btn := inline.Data(text, SUB_BTN, r.Name, "NAME_BTN")
 		rows = append(rows, inline.Row(btn))
 	}
 	inline.Inline(rows...)
-	ctx.Send(fmt.Sprintf("Found %d results:", len(res)), inline)
+	ctx.Edit(fmt.Sprintf("Found %d results:", len(res)), inline)
 	return nil
 }
 
-func prepareSearchBtn(r string, f string) (tele.Row) {
+func prepareSearchBtn(r string, f string, id int) (tele.Row) {
 	mu := &tele.ReplyMarkup{}
 	var btns []tele.Btn
 	filter := fmt.Sprintf("REDDIT_%s", f)
 	btns = append(btns, mu.Data(f, "t", "t"))
-	btns = append(btns, mu.Data("50", SCRP_BTN, r, filter, "50"))
-	btns = append(btns, mu.Data("25", SCRP_BTN, r, filter, "25"))
-	btns = append(btns, mu.Data("10", SCRP_BTN, r, filter, "10"))
+	btns = append(btns, mu.Data("50", SCRP_BTN, r, filter, string(id), "50"))
+	btns = append(btns, mu.Data("25", SCRP_BTN, r, filter, string(id),"25"))
+	btns = append(btns, mu.Data("10", SCRP_BTN, r, filter, string(id), "10"))
 	return mu.Row(btns...)
 }

@@ -34,11 +34,11 @@ func (b *Bot) scrpCallbackHandler(c tele.Context) error {
 		SkipVideos:   true,
 		RedditFilter: reddit.PostFilter(filter),
 	}
-	c.Edit(fmt.Sprintf("started scrapping %s for %s posts", red, lim))
+	msg, _ := b.Send(c.Sender(), fmt.Sprintf("started scrapping %s for %s posts", red, lim))
 	key := fmt.Sprintf("%s|%d", red, limit)
 	if val, err := b.kv.Get("req", key); err != nil {
 		log.Infof("cache miss for", "key", key)
-		files, err = b.scrape(c, red, opts, 10)
+		files, err = b.scrape(msg, red, opts, 10)
 		if err != nil {
 			return err
 		}
@@ -55,7 +55,7 @@ func (b *Bot) scrpCallbackHandler(c tele.Context) error {
 		c.Edit("No posts to download 😥")
 		return c.Respond()
 	}
-	c.Edit(fmt.Sprintf("scrapped %d posts, sending it to you", len(files)))
+	b.b.Edit(msg, fmt.Sprintf("scrapped %d posts, sending it to you", len(files)))
 	if err := b.sendScrapped(c, files); err != nil {
 		return err
 	}

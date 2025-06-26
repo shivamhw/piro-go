@@ -10,7 +10,7 @@ import (
 	tele "gopkg.in/telebot.v4"
 )
 
-func (b *Bot) scrape(update tele.Context, red string, opts *sources.ScrapeOpts, timeout int) ([]sources.Item, error) {
+func (b *Bot) scrape(update *tele.Message, red string, opts *sources.ScrapeOpts, timeout int) ([]sources.Item, error) {
 	deadline := time.Now().Add(time.Duration(timeout) * time.Minute) 
 	var files []sources.Item
 	id, err := b.s.Scrape(red, dst, opts)
@@ -22,7 +22,7 @@ func (b *Bot) scrape(update tele.Context, red string, opts *sources.ScrapeOpts, 
 		if err != nil {
 			return files, err
 		}
-		update.Edit(fmt.Sprintf("Downloading %d/%d", st.ItemDone, st.TotalItem))
+		b.b.Edit(update, fmt.Sprintf("Downloading %d/%d", st.ItemDone, st.TotalItem))
 		if st.ItemDone >= st.TotalItem && st.Status != scrapper.TaskCreated{
 			res, err := b.s.GetJob(id)
 			if err != nil {

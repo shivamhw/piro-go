@@ -85,8 +85,25 @@ func (b *Bot) Start() {
 }
 
 
-func (b *Bot) SendAlbum(to telebot.Recipient, a telebot.Album, opts ...interface{}) ([]telebot.Message, error) {
-	return b.b.SendAlbum(to, a, opts...)
+func (b *Bot) SendAlbum(to telebot.Recipient, a telebot.Album, opts ...interface{}) (m []telebot.Message, err error) {
+	m, err = b.b.SendAlbum(to, a, opts...)
+	if err != nil {
+		log.Errorf("sending album failed, reverting to single msg", "err", err)
+		for _, f := range a {
+			if f.MediaType() == "photo"{
+				fiel := telebot.Photo{
+					File: *f.MediaFile(),
+				}
+				msg, err :=  b.b.Send(to, &fiel)
+				if err != nil  {
+					log.Errorf(err.Error())
+				} else {
+					m = append(m, *msg)
+				}
+			}
+		}
+	}
+	return m, nil
 }
 
 func (b *Bot) Notify(s string) {

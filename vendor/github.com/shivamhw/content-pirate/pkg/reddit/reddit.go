@@ -167,6 +167,7 @@ func (r *RedditClient) SearchSubreddits(q string, limit int) ([]*reddit.Subreddi
 				Limit: page,
 				After: nextToken,
 			},
+			Sort: "activity",
 		})
 		if err != nil {
 			Logger.Error("failed getting search subreddit list", "err", err)

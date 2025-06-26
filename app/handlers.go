@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/shivamhw/content-pirate/pkg/reddit"
 	"github.com/shivamhw/content-pirate/sources"
 	"github.com/shivamhw/content-pirate/store"
 	"github.com/shivamhw/piro-go/pkg/log"
@@ -22,13 +23,16 @@ var dst = &store.DstPath{
 func (b *Bot) scrpCallbackHandler(c tele.Context) error {
 	var files []sources.Item
 	red := strings.Split(c.Data(), "|")[0]
-	lim := strings.Split(c.Data(), "|")[1]
+	lim := strings.Split(c.Data(), "|")[2]
+	filter :=strings.Split(c.Data(), "|")[1]
+
 	log.Infof("scrapping sub reddit with limits,", "sub", red, "limit", lim)
 	limit, _ := strconv.Atoi(lim)
 	opts := &sources.ScrapeOpts{
 		Limit:      limit,
 		Duration:   "month",
 		SkipVideos: true,
+		RedditFilter: reddit.PostFilter(filter),
 	}
 	msg, _ := b.Send(c.Sender(), fmt.Sprintf("started scrapping %s for %s posts", red, lim))
 	key := fmt.Sprintf("%s|%d", red, limit)
@@ -47,6 +51,10 @@ func (b *Bot) scrpCallbackHandler(c tele.Context) error {
 			return err
 		}
 	}
+	if len(files) <= 0 {
+		b.b.Edit(msg, "No posts to download 😥")
+		return c.Respond()
+	}
 	b.b.Edit(msg, fmt.Sprintf("scrapped %d posts, sending it to you", len(files)))
 	if err := b.sendScrapped(c, files); err != nil {
 		return err
@@ -56,12 +64,10 @@ func (b *Bot) scrpCallbackHandler(c tele.Context) error {
 
 func (b *Bot) subBtnCallbackHandle(c tele.Context) error {
 	mu := &tele.ReplyMarkup{}
-	var btns []tele.Btn
-	btns = append(btns, mu.Data("top 50", SCRP_BTN, c.Data(), "50"))
-	btns = append(btns, mu.Data("top 25", SCRP_BTN, c.Data(), "25"))
-	btns = append(btns, mu.Data("top 10", SCRP_BTN, c.Data(), "10"))
-	row := mu.Row(btns...)
-	mu.Inline(row)
+	var rows []tele.Row
+	rows = append(rows, prepareSearchBtn(c.Data(), "TOP"))
+	rows = append(rows, prepareSearchBtn(c.Data(), "HOT"))
+	mu.Inline(rows...)
 	c.Send(fmt.Sprintf("Here are your options for %s", c.Data()), mu)
 	return c.Respond()
 }

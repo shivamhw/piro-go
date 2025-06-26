@@ -78,10 +78,22 @@ func (b *Bot) search(ctx tele.Context, q string) error {
 
 	var rows []tele.Row
 	for _, r := range res {
-		btn := inline.Data(r.Name, SUB_BTN, r.Name)
+		text := fmt.Sprintf("%s 🧑‍🤝‍🧑 %d", r.Name, r.Subscribers)
+		btn := inline.Data(text, SUB_BTN, r.Name)
 		rows = append(rows, inline.Row(btn))
 	}
 	inline.Inline(rows...)
 	ctx.Send(fmt.Sprintf("Found %d results:", len(res)), inline)
 	return nil
+}
+
+func prepareSearchBtn(r string, f string) (tele.Row) {
+	mu := &tele.ReplyMarkup{}
+	var btns []tele.Btn
+	filter := fmt.Sprintf("REDDIT_%s", f)
+	btns = append(btns, mu.Data(f, "t", "t"))
+	btns = append(btns, mu.Data("50", SCRP_BTN, r, filter, "50"))
+	btns = append(btns, mu.Data("25", SCRP_BTN, r, filter, "25"))
+	btns = append(btns, mu.Data("10", SCRP_BTN, r, filter, "10"))
+	return mu.Row(btns...)
 }
